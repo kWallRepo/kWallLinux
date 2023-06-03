@@ -5,4 +5,4 @@ REQUIREMENTS: Python 3.11.3, which can be installed using "sudo apt install pyth
 
 To start using kWall, simply download, open your terminal and navigate to the directory the script is in, then run the script using "sudo python3 kWall.py".
 
-Downloads can be found on the kWall website: https://kwall.rf.gd
+Downloads for Windows can be found on the kWall website: https://kwall.rf.gd
