@@ -6,10 +6,6 @@ from io import StringIO
 # Fetch the IP blocklist
 response = requests.get("https://feodotracker.abuse.ch/downloads/ipblocklist.csv").text
 
-# Delete existing firewall rule
-delete_rule = "sudo ufw delete deny from any to any"
-subprocess.run(["bash", "-c", delete_rule], check=True)
-
 # Process the IP blocklist
 csv_data = csv.reader(filter(lambda x: not x.startswith("#"), StringIO(response)))
 header = next(csv_data)  # Get the header row
@@ -23,11 +19,17 @@ else:
         if ip_index < len(row):
             ip = row[ip_index]
             if ip:
-                print("Added Rule to block:", ip)
-                # Add firewall rule to block IP
-                rule = f"sudo ufw deny from {ip}"
-                subprocess.run(["bash", "-c", rule], check=True)
-                added_rules.append(ip)
+                # Check if rule already exists
+                check_rule = f"sudo ufw show added | grep -w {ip}"
+                existing_rule = subprocess.run(["bash", "-c", check_rule], capture_output=True, text=True)
+                if existing_rule.stdout.strip():
+                    print("Rule already exists. Skipping:", ip)
+                else:
+                    print("Added Rule to block:", ip)
+                    # Add firewall rule to block IP
+                    rule = f"sudo ufw deny from {ip}"
+                    subprocess.run(["bash", "-c", rule], check=True)
+                    added_rules.append(ip)
         else:
             print("Invalid row:", row)
 
