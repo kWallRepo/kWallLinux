@@ -3,7 +3,6 @@ import csv
 import subprocess
 from io import StringIO
 import re
-import shlex
 
 # Fetch the IP blocklist
 response = requests.get("https://feodotracker.abuse.ch/downloads/ipblocklist.csv").text
@@ -17,14 +16,13 @@ if ip_index is None:
     print("Unable to find the column containing IP addresses.")
 else:
     added_rules = []
+    existing_rules = subprocess.run(["ufw", "status", "numbered"], capture_output=True, text=True).stdout
+
     for row in csv_data:
         if ip_index < len(row):
             ip = row[ip_index]
             if ip and re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-                # Check if rule already exists
-                check_rule = ["ufw", "show", "added", "|", "grep", "-w", ip]
-                existing_rule = subprocess.run(check_rule, capture_output=True, text=True)
-                if existing_rule.stdout.strip():
+                if ip in existing_rules:
                     print("Rule already exists. Skipping:", ip)
                 else:
                     print("Added Rule to block:", ip)
